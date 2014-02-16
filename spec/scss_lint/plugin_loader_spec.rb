@@ -4,8 +4,8 @@ describe SCSSLint::PluginLoader do
   describe '.load' do
     include_context 'isolated environment'
 
-    module FakeLinter
-      class FakeLint < SCSSLint::Linter; end
+    module FakeCustomLinters
+      class FakeLinter < SCSSLint::Linter; end
     end
 
     before do
@@ -13,8 +13,8 @@ describe SCSSLint::PluginLoader do
       Dir.mkdir(root)
       File.open(File.join(root, 'test_lint.rb'), 'w') do |file|
         file.write(<<-'LINT')
-          module FakeLinter
-            class FakeLint < SCSSLint::Linter
+          module FakeCustomLinters
+            class FakeLinter < SCSSLint::Linter
               include SCSSLint::LinterRegistry
 
               def visit_prop(node)
@@ -34,7 +34,7 @@ describe SCSSLint::PluginLoader do
       file_matcher = File.join(ENV['HOME'], '.scss-lints', '**/*.rb')
       SCSSLint::PluginLoader.load(file_matcher)
 
-      SCSSLint::LinterRegistry.linters.should include(FakeLinter::FakeLint)
+      SCSSLint::LinterRegistry.linters.should include(FakeCustomLinters::FakeLinter)
     end
   end
 end
