@@ -74,6 +74,18 @@ describe SCSSLint::CLI do
       end
     end
 
+    context 'when the plugin directories flag is set' do
+      include_context 'isolated environment'
+
+      let(:home_dir) { File.join(ENV['HOME'], '.scss-lints') }
+      let(:flags) { ['-p', home_dir] }
+
+      it 'tells the loader to load the directories' do
+        safe_parse
+        subject.options[:plugin_dirs].should == [home_dir]
+      end
+    end
+
     context 'when the exclude linters flag is set' do
       let(:flags) { %w[-x FakeTestLinter1] }
 

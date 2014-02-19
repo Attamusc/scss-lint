@@ -39,6 +39,8 @@ module SCSSLint
         puts ex.message
         halt :config
       end
+
+      load_plugin_files
     end
 
     def options_parser
@@ -69,6 +71,11 @@ module SCSSLint
         opts.on('-x', '--exclude-linter linter,...', Array,
                 "Specify which linters you don't want to run") do |linters|
           @options[:excluded_linters] = linters
+        end
+
+        opts.on('-p', '--plugin-dir dir,...', Array,
+                'Specify directories where additional linters can be found') do |plugin_dirs|
+          @options[:plugin_dirs] = plugin_dirs
         end
 
         opts.on_tail('--show-linters', 'Shows available linters') do
@@ -135,6 +142,14 @@ module SCSSLint
       end
 
       config
+    end
+
+    def load_plugin_files
+      if @options[:plugin_dirs]
+        @options[:plugin_dirs].each do |plugin_dir|
+          PluginLoader.load(plugin_dir)
+        end
+      end
     end
 
     def files_to_lint
