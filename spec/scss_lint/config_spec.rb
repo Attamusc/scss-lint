@@ -282,6 +282,66 @@ describe SCSSLint::Config do
           .should == { 'enabled' => true }
       end
     end
+
+    context 'when a plugin directory is specified' do
+      include_context 'isolated environment'
+
+      module FakeCustomLinters
+        class FakeLinter < SCSSLint::Linter; end
+      end
+
+      context 'and the directory contains plugin files' do
+        before do
+          root = File.join(ENV['HOME'], '.scss-lints')
+
+          puts 'From "before" block'
+          puts root
+
+          Dir.mkdir(root)
+          File.open(File.join(root, 'test_lint.rb'), 'w') do |file|
+            file.write(<<-'LINT')
+              module FakeCustomLinters
+                class FakeLinter < SCSSLint::Linter
+                  include SCSSLint::LinterRegistry
+
+                  def visit_prop(node)
+                    add_lint(node)
+                  end
+
+                  def description
+                    'I am a fake lint'
+                  end
+                end
+              end
+            LINT
+          end
+        end
+
+        let(:default_file) { <<-FILE }
+        plugin_dirs:
+          - ~/.scss-lints/**/*.rb
+
+        linters:
+          FakeCustomLinters::FakeLinter:
+            enabled: true
+        FILE
+
+        let(:config_file) { <<-FILE }
+        plugin_dirs:
+          - ~/.scss-lints/**/*.rb
+
+        linters:
+          FakeCustomLinters::FakeLinter:
+            enabled: true
+        FILE
+
+        it 'loads the plugins from the directory' do
+          # Needed to get around rspecs ordering of "before" and "subject" blocks
+          described_class.load(file_name)
+          SCSSLint::LinterRegistry.linters.should include(FakeCustomLinters::FakeLinter)
+        end
+      end
+    end
   end
 
   describe '.for_file' do

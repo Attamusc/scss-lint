@@ -197,6 +197,7 @@ module SCSSLint
       @options = options
       @warnings = []
 
+      load_plugins_from_dir
       validate_linters
     end
 
@@ -266,6 +267,14 @@ module SCSSLint
           Linter.const_get(name)
         rescue NameError
           @warnings << "Linter #{name} does not exist; ignoring"
+        end
+      end
+    end
+
+    def load_plugins_from_dir
+      if @options['plugin_dirs']
+        @options['plugin_dirs'].each do |dir|
+          PluginLoader.load(dir)
         end
       end
     end
